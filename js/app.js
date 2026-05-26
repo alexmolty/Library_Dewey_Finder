@@ -1,4 +1,4 @@
-let locations = loadData();
+let locations = [];
 let currentSelectedId = null;
 
 function render() {
@@ -24,7 +24,6 @@ function showDetails(id) {
     document.querySelectorAll(".room").forEach(r => r.classList.remove("selected"));
     document.getElementById(id).classList.add("selected");
 
-    // НОВЫЙ БЛОК: Заголовок с кнопкой редактирования имени
     let html = `
         <div class="room-header">
             <b id="room-name-display">${loc.name}</b>
@@ -50,10 +49,7 @@ function showDetails(id) {
 
     html += `
         <button class="add-tag-btn" title="Add items">+</button>
-
-        <button class="delete-room-btn">
-            Delete Location
-        </button>
+        <button class="delete-room-btn">Delete Location</button>
         <div id="inline-add-container" class="hidden">
             <input type="text" id="inline-add-input" placeholder="e.g. 515.2, 600-700">
             <button class="confirm-add-btn">✓</button>
@@ -82,7 +78,6 @@ detailsPanel.addEventListener("click", (e) => {
         });
         finishEdit();
     }
-
     // 2. Кнопка Плюс (Добавить индексы)
     else if (e.target.classList.contains("add-tag-btn")) {
         e.target.style.display = "none";
@@ -90,49 +85,34 @@ detailsPanel.addEventListener("click", (e) => {
         container.classList.remove("hidden");
         document.getElementById("inline-add-input").focus();
     }
-
     // 3. Галочка подтверждения (Добавить индексы)
     else if (e.target.classList.contains("confirm-add-btn")) {
         processInlineAdd(loc);
     }
-
     // 4. Кнопка изменения ИМЕНИ
     else if (e.target.classList.contains("edit-name-btn")) {
-        e.target.style.display = "none"; // Прячем карандаш
-        document.getElementById("room-name-display").style.display = "none"; // Прячем текст имени
+        e.target.style.display = "none";
+        document.getElementById("room-name-display").style.display = "none";
         const container = document.getElementById("inline-name-edit");
-        container.classList.remove("hidden"); // Показываем инпут
+        container.classList.remove("hidden");
 
         const inputEl = document.getElementById("inline-name-input");
         inputEl.focus();
-        // Ставим курсор в конец текста
         inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
     }
-
     // 5. Галочка подтверждения ИМЕНИ
     else if (e.target.classList.contains("confirm-name-btn")) {
         processNameEdit(loc);
     }
-// Удаление локации
+    // 6. Удаление локации
     else if (e.target.classList.contains("delete-room-btn")) {
-
-        const confirmed = confirm(
-            `Delete "${loc.name}" ?`
-        );
-
+        const confirmed = confirm(`Delete "${loc.name}" ?`);
         if (!confirmed) return;
-
-        locations = locations.filter(
-            l => l.id !== loc.id
-        );
-
+        locations = locations.filter(l => l.id !== loc.id);
         saveData(locations);
-
         render();
-
         resetUI();
     }
-
 });
 
 // Слушаем Enter в обоих инпутах
@@ -156,18 +136,19 @@ function processNameEdit(loc) {
 
     if (newName) {
         loc.name = newName;
-        finishEdit(); // Сохраняем и перерисовываем
+        finishEdit();
     } else {
-        showDetails(currentSelectedId); // Если стерли всё, просто возвращаем старое имя
+        showDetails(currentSelectedId);
     }
 }
+
 // Логика добавления тегов
 function processInlineAdd(loc) {
     const inputEl = document.getElementById("inline-add-input");
     const inputVal = inputEl.value.trim();
 
     if (!inputVal) {
-        showDetails(currentSelectedId); // Сброс UI, если ничего не ввели
+        showDetails(currentSelectedId);
         return;
     }
 
@@ -186,13 +167,12 @@ function processInlineAdd(loc) {
 }
 
 function finishEdit() {
-    saveData(locations);
+    saveData(locations); // Фоновое сохранение в облако
     render();
     showDetails(currentSelectedId);
 }
 
 // --- ПОИСК И ОБЩЕЕ УПРАВЛЕНИЕ ---
-
 function runSearch() {
     const q = document.getElementById("search").value.trim();
     if (!q) return;
@@ -219,18 +199,12 @@ function resetUI() {
     document.getElementById("details").innerHTML = "Click a location to see all books... (Click items to edit)";
     currentSelectedId = null;
 }
-document.getElementById("btn-add-location")
-    .addEventListener("click", addLocation);
 
-function addLocation() {
-
+document.getElementById("btn-add-location").addEventListener("click", () => {
     const name = prompt("Location name:");
-
     if (!name || !name.trim()) return;
 
-    const id =
-        "loc_" + Date.now();
-
+    const id = "loc_" + Date.now();
     locations.push({
         id,
         name: name.trim(),
@@ -238,53 +212,21 @@ function addLocation() {
     });
 
     saveData(locations);
-
     render();
-}
-
-function exportData() {
-    const dataStr = JSON.stringify(locations, null, 2);
-    const blob = new Blob([dataStr], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "library_data.txt";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-function handleImport(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const importedData = JSON.parse(e.target.result);
-            if (Array.isArray(importedData)) {
-                locations = importedData;
-                saveData(locations);
-                render();
-                document.getElementById("details").innerHTML = "Data imported successfully! Click a room to view.";
-                currentSelectedId = null;
-            } else alert("Format error: Data is not an array.");
-        } catch (err) { alert("Error parsing file."); }
-        event.target.value = "";
-    };
-    reader.readAsText(file);
-}
+});
 
 // --- EVENT LISTENERS ---
 document.getElementById("btn-search").addEventListener("click", runSearch);
 document.getElementById("btn-reset").addEventListener("click", resetUI);
-document.getElementById("btn-export").addEventListener("click", exportData);
-document.getElementById("btn-trigger-import").addEventListener("click", () => document.getElementById("fileInput").click());
-document.getElementById("fileInput").addEventListener("change", handleImport);
-
 document.getElementById("search").addEventListener("keydown", (e) => {
     if (e.key === "Enter") runSearch();
 });
 
-// Запуск
-render();
+// Запуск с ожиданием загрузки из облака
+async function initApp() {
+    document.getElementById("list").innerHTML = "<div style='grid-column: 1/-1; text-align: center; color: #666; margin-top: 30px;'>Подключение к облаку библиотеки...</div>";
+    locations = await loadData();
+    render();
+}
+
+initApp();
