@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Library Dewey Finder (Inline Editor)</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="controls">
+
+    <input id="search" placeholder="Enter Dewey code (e.g. 515.2 or 621.4)">
+
+    <button id="btn-search">Search</button>
+
+    <button id="btn-reset" class="reset">Reset</button>
+
+    <button id="btn-add-location" class="add-location">
+        + Add Location
+    </button>
+
+</div>
+
+<div id="list"></div>
+<div id="details">Click a location to see all books... (Click items to edit)</div>
+
+<div id="io-panel">
+    <button id="btn-export" class="btn-io">Export to TXT</button>
+    <button id="btn-trigger-import" class="btn-io">Import from TXT</button>
+    <input type="file" id="fileInput" accept=".txt">
+</div>
+
+<!-- Скрипты загружаются по очереди -->
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
