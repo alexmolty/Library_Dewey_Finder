@@ -224,7 +224,7 @@ document.getElementById("search").addEventListener("keydown", (e) => {
 
 // Запуск с ожиданием загрузки из облака
 async function initApp() {
-    document.getElementById("list").innerHTML = "<div style='grid-column: 1/-1; text-align: center; color: #666; margin-top: 30px;'>Подключение к облаку библиотеки...</div>";
+    document.getElementById("list").innerHTML = "<div style='grid-column: 1/-1; text-align: center; color: #666; margin-top: 30px;'>Connecting to cloud database...</div>";
     locations = await loadData();
     render();
 }
