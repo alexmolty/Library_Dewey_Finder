@@ -222,29 +222,27 @@ document.getElementById("search").addEventListener("keydown", (e) => {
     if (e.key === "Enter") runSearch();
 });
 
-// Запуск с кэшированием (сохраняем лимиты JSONBin)
-async function initApp() {
+// Запуск с настоящим кэшированием (срок годности - 1 час)
+async function initApp(forceRefresh = false) {
     const list = document.getElementById("list");
-    list.innerHTML = "<div style='grid-column: 1/-1; text-align: center; color: #666; margin-top: 30px;'>Connecting to cloud database...</div>";
+    list.innerHTML = "<div style='grid-column: 1/-1; text-align: center; color: #666; margin-top: 30px;'>Loading database...</div>";
     
     const cachedData = localStorage.getItem("lib_cache");
-    if (cachedData) {
-        // Показываем сохраненную копию моментально
+    const cacheTime = localStorage.getItem("lib_cache_time");
+    const CACHE_DURATION = 1000 * 60 * 60; // 1 час в миллисекундах
+    const now = Date.now();
+
+    // Если данные есть, они свежие (меньше часа) И мы не нажали кнопку принудительного обновления
+    if (!forceRefresh && cachedData && cacheTime && (now - cacheTime < CACHE_DURATION)) {
+        // БЕРЕМ ИЗ ПАМЯТИ: 0 запросов к JSONBin
         locations = JSON.parse(cachedData);
         render();
-        // В фоне проверяем облако на наличие обновлений
-        loadData().then(freshData => {
-            if (freshData && JSON.stringify(locations) !== JSON.stringify(freshData)) {
-                locations = freshData;
-                localStorage.setItem("lib_cache", JSON.stringify(locations));
-                render(); // Перерисовываем, только если кто-то другой изменил базу
-            }
-        });
     } else {
-        // Если кэша нет (первый заход), скачиваем базу
+        // КАЧАЕМ ИЗ ОБЛАКА: Тратим 1 запрос
         locations = await loadData();
         if (locations.length > 0) {
             localStorage.setItem("lib_cache", JSON.stringify(locations));
+            localStorage.setItem("lib_cache_time", now); // Запоминаем время скачивания
         }
         render();
     }
