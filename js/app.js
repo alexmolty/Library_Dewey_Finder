@@ -145,7 +145,7 @@ function processNameEdit(loc) {
 // Логика добавления тегов
 function processInlineAdd(loc) {
     const inputEl = document.getElementById("inline-add-input");
-    const inputVal = inputEl.value.trim();
+    const inputVal = inputEl.value.replace(/[^\d.\-,\s]/g, '');
 
     if (!inputVal) {
         showDetails(currentSelectedId);
@@ -174,7 +174,7 @@ function finishEdit() {
 
 // --- ПОИСК И ОБЩЕЕ УПРАВЛЕНИЕ ---
 function runSearch() {
-    const q = document.getElementById("search").value.trim();
+    const q = document.getElementById("search").value.replace(/[^\d.\-]/g, '');
     if (!q) return;
 
     document.querySelectorAll(".room").forEach(r => r.classList.remove("main", "secondary"));
