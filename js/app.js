@@ -222,11 +222,32 @@ document.getElementById("search").addEventListener("keydown", (e) => {
     if (e.key === "Enter") runSearch();
 });
 
-// Запуск с ожиданием загрузки из облака
+// Запуск с кэшированием (сохраняем лимиты JSONBin)
 async function initApp() {
-    document.getElementById("list").innerHTML = "<div style='grid-column: 1/-1; text-align: center; color: #666; margin-top: 30px;'>Connecting to cloud database...</div>";
-    locations = await loadData();
-    render();
+    const list = document.getElementById("list");
+    list.innerHTML = "<div style='grid-column: 1/-1; text-align: center; color: #666; margin-top: 30px;'>Connecting to cloud database...</div>";
+    
+    const cachedData = localStorage.getItem("lib_cache");
+    if (cachedData) {
+        // Показываем сохраненную копию моментально
+        locations = JSON.parse(cachedData);
+        render();
+        // В фоне проверяем облако на наличие обновлений
+        loadData().then(freshData => {
+            if (freshData && JSON.stringify(locations) !== JSON.stringify(freshData)) {
+                locations = freshData;
+                localStorage.setItem("lib_cache", JSON.stringify(locations));
+                render(); // Перерисовываем, только если кто-то другой изменил базу
+            }
+        });
+    } else {
+        // Если кэша нет (первый заход), скачиваем базу
+        locations = await loadData();
+        if (locations.length > 0) {
+            localStorage.setItem("lib_cache", JSON.stringify(locations));
+        }
+        render();
+    }
 }
 
 initApp();
