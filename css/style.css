@@ -88,6 +88,23 @@ button.add-location:hover {
 
     background: #b02a37;
 }
+/* --- SYNC BUTTON --- */
+#btn-sync {
+    margin-left: auto; /* Прижимает кнопку к правому краю */
+    background: transparent; /* Убирает сплошной фон */
+    color: #a0a0a0; /* Делает текст бледно-серым */
+    font-weight: normal; /* Убирает жирность */
+    font-size: 13px;
+    padding: 6px 10px;
+    transition: all 0.2s ease;
+}
+
+/* Эффект при наведении курсора */
+#btn-sync:hover {
+    background: #f0f0f0; /* Легкий серый фон */
+    color: #555; /* Текст становится темнее */
+    border-radius: 4px;
+}
 
 /* --- MOBILE --- */
 
