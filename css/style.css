@@ -1,7 +1,17 @@
 :root { --gap: 10px; --card-h: 100px; --font: 13px; }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 15px; background: #f4f7f6; padding-bottom: 60px; }
 
-#controls { display: flex; gap: 10px; margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); justify-content: center; }
+#controls { 
+    display: flex; 
+    gap: 10px; 
+    margin-bottom: 15px; 
+    background: white; 
+    padding: 15px; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    justify-content: center;
+    position: relative;
+}
 #controls input { width: 315px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; outline: none; }
 #controls input:focus { border-color: #007bff; }
 
@@ -90,10 +100,14 @@ button.add-location:hover {
 }
 /* --- SYNC BUTTON --- */
 #btn-sync {
-    margin-left: auto; /* Прижимает кнопку к правому краю */
-    background: transparent; /* Убирает сплошной фон */
-    color: #a0a0a0; /* Делает текст бледно-серым */
-    font-weight: normal; /* Убирает жирность */
+    position: absolute; /* Вырываем из общего потока Flexbox */
+    right: 15px; /* Прижимаем к правому краю (15px отступ) */
+    top: 50%; /* Сдвигаем на середину высоты... */
+    transform: translateY(-50%); /* ...и выравниваем точно по центру вертикали */
+    
+    background: transparent;
+    color: #a0a0a0;
+    font-weight: normal;
     font-size: 13px;
     padding: 6px 10px;
     transition: all 0.2s ease;
@@ -111,26 +125,26 @@ button.add-location:hover {
 @media (max-width: 700px) {
 
     #controls {
-
         flex-direction: column;
         align-items: stretch;
     }
 
     #controls input {
-
         width: 100%;
         box-sizing: border-box;
     }
 
     #list {
-
         grid-template-columns: 1fr;
     }
 
     #io-panel {
-
         flex-direction: column;
         right: 10px;
         bottom: 10px;
+    }
+    #btn-sync {
+        position: static;
+        transform: none;
     }
 }
