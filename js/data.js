@@ -50,6 +50,7 @@ async function saveData(locations) {
         // Если всё успешно, запоминаем ключ в браузере, чтобы не вводить каждый раз
         localStorage.setItem("admin_key", masterKey);
         localStorage.setItem("lib_cache", JSON.stringify(locations));
+        localStorage.setItem("lib_cache_time", Date.now()); // Обновляем время у того, кто вносил изменения
     } catch (error) {
         console.error("Saving error:", error);
     }
