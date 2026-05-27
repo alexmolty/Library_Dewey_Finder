@@ -221,6 +221,9 @@ document.getElementById("btn-reset").addEventListener("click", resetUI);
 document.getElementById("search").addEventListener("keydown", (e) => {
     if (e.key === "Enter") runSearch();
 });
+document.getElementById("btn-sync").addEventListener("click", () => {
+    initApp(true); // Параметр true заставит браузер игнорировать кэш и скачать свежее
+});
 
 // Запуск с настоящим кэшированием (срок годности - 1 час)
 async function initApp(forceRefresh = false) {
