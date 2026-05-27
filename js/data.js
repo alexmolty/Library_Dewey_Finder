@@ -49,7 +49,7 @@ async function saveData(locations) {
         
         // Если всё успешно, запоминаем ключ в браузере, чтобы не вводить каждый раз
         localStorage.setItem("admin_key", masterKey);
-        
+        localStorage.setItem("lib_cache", JSON.stringify(locations));
     } catch (error) {
         console.error("Saving error:", error);
     }
