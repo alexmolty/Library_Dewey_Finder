@@ -82,45 +82,45 @@ function parseInput(input) {
 }
 
 function matchDewey(loc, q) {
-
-    let score = 0;
+    let maxScore = 0;
+    const normQ = normalizeDewey(q); // Нормализуем запрос один раз для ranges
 
     loc.items.forEach(item => {
+        let itemScore = 0;
 
         // POINT
         if (item.type === "point") {
-
-            // exact
             if (item.value === q) {
-
-                score += 100;
+                itemScore = 100;
+            } else if (item.value.startsWith(q)) {
+                itemScore = 50;
+            } else if (q.startsWith(item.value)) {
+                itemScore = 30;
             }
+        } 
+        // RANGE (Умный подсчет вложенности)
+        else if (item.type === "range") {
+            const normFrom = normalizeDewey(item.from);
+            const normTo = normalizeDewey(item.to);
 
-            // category relation
-            else if (
-                item.value.startsWith(q) ||
-                q.startsWith(item.value)
-            ) {
-
-                score += 30;
+            // Если книга попадает в диапазон
+            if (normQ >= normFrom && normQ <= normTo) {
+                // Вычисляем, насколько похожи цифры (глубина префикса)
+                let commonPrefixLen = 0;
+                for(let i = 0; i < normQ.length; i++) {
+                    if (normQ[i] === normFrom[i]) commonPrefixLen++;
+                    else break; // Прерываем, как только цифры разошлись
+                }
+                
+                // Базовый балл за диапазон (70) + бонус за точность совпадения (от 0 до 12)
+                itemScore = 70 + commonPrefixLen; 
             }
         }
 
-        // RANGE
-        else if (item.type === "range") {
-
-            const afterStart =
-                compareDewey(q, item.from) >= 0;
-
-            const beforeEnd =
-                compareDewey(q, item.to) <= 0;
-
-            if (afterStart && beforeEnd) {
-
-                score += 80;
-            }
+        if (itemScore > maxScore) {
+            maxScore = itemScore;
         }
     });
 
-    return score;
+    return maxScore;
 }
