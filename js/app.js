@@ -174,9 +174,39 @@ function finishEdit() {
 
 // --- ПОИСК И ОБЩЕЕ УПРАВЛЕНИЕ ---
 function runSearch() {
-    const q = document.getElementById("search").value.replace(/[^\d.\-]/g, '');
-    if (!q) return;
+    let rawQ = document.getElementById("search").value.trim();
+    if (!rawQ) return;
 
+    let q = rawQ;
+
+    // ШАГ 1: ПРОВЕРЯЕМ, ЕСТЬ ЛИ БУКВЫ (Английский или Иврит)
+    if (/[a-zA-Zא-ת]/.test(rawQ)) {
+        const lowerQ = rawQ.toLowerCase();
+        let found = false;
+        
+        // Ищем введенный текст в словаре
+        for (let key in subjectDictionary) {
+            if (key.includes(lowerQ)) {
+                q = subjectDictionary[key]; // Переводим слово в индекс (например, 004)
+                document.getElementById("search").value = `${rawQ} → ${q}`;
+                found = true;
+                break;
+            }
+        }
+        
+        // Если слова нет в словаре - просто сбрасываем цвета и пишем ошибку
+        if (!found) {
+            document.querySelectorAll(".room").forEach(r => r.classList.remove("main", "secondary"));
+            document.getElementById("details").innerHTML = `Subject "${rawQ}" not found in dictionary.`;
+            currentSelectedId = null;
+            return;
+        }
+    } else {
+        // Если ввели цифры - чистим от невидимых символов
+        q = rawQ.replace(/[^\d.\-]/g, '');
+    }
+
+    // ШАГ 2: СТАНДАРТНЫЙ, РАБОЧИЙ ПОИСК
     document.querySelectorAll(".room").forEach(r => r.classList.remove("main", "secondary"));
 
     let results = locations.map(l => ({ ...l, score: matchDewey(l, q) }))
