@@ -174,20 +174,79 @@ function finishEdit() {
 
 // --- ПОИСК И ОБЩЕЕ УПРАВЛЕНИЕ ---
 function runSearch() {
-    const q = document.getElementById("search").value.replace(/[^\d.\-]/g, '');
-    if (!q) return;
+    let rawQ = document.getElementById("search").value.trim();
+    
+    // Если поиск сброшен - возвращаем яркость всем комнатам
+    if (!rawQ) {
+        document.querySelectorAll(".room").forEach(r => {
+            r.style.opacity = "1";
+            r.classList.remove("best-match");
+        });
+        document.getElementById("details").innerHTML = "Click a location to see all books... (Click items to edit)";
+        currentSelectedId = null;
+        return;
+    }
 
-    document.querySelectorAll(".room").forEach(r => r.classList.remove("main", "secondary"));
+    let q = rawQ; // Итоговый поисковый запрос (индекс)
 
+    // Проверяем, есть ли в запросе буквы (английские или иврит)
+    if (/[a-zA-Zא-ת]/.test(rawQ)) {
+        const lowerQ = rawQ.toLowerCase();
+        let found = false;
+        
+        // Ищем введенный текст в нашем словаре
+        for (let key in subjectDictionary) {
+            // Если то, что ввел юзер, является частью слова в словаре (или наоборот)
+            if (key.includes(lowerQ)) {
+                q = subjectDictionary[key]; // Берем индекс (например, 621.4)
+                
+                // Визуальная подсказка: показываем юзеру, во что превратился его запрос
+                document.getElementById("search").value = `${rawQ} → ${q}`;
+                found = true;
+                break;
+            }
+        }
+        
+        // Если слово не найдено в словаре
+        if (!found) {
+            document.querySelectorAll(".room").forEach(r => {
+                r.style.opacity = "0.35";
+                r.classList.remove("best-match");
+            });
+            document.getElementById("details").innerHTML = `Subject "${rawQ}" not found in dictionary.`;
+            currentSelectedId = null;
+            return;
+        }
+    } else {
+        // Если букв нет (ищем цифры) — очищаем от невидимых символов
+        q = rawQ.replace(/[^\d.\-]/g, '');
+    }
+
+    // --- ДАЛЬШЕ ИДЕТ СТАНДАРТНАЯ ЛОГИКА ПОИСКА (мы её не меняем) ---
     let results = locations.map(l => ({ ...l, score: matchDewey(l, q) }))
-        .filter(l => l.score > 0)
         .sort((a, b) => b.score - a.score);
 
-    if (results.length) {
-        document.getElementById(results[0].id).classList.add("main");
-        showDetails(results[0].id);
-        results.slice(1).forEach(r => document.getElementById(r.id).classList.add("secondary"));
+    const bestScore = results[0].score;
+
+    document.querySelectorAll(".room").forEach(r => {
+        r.classList.remove("best-match", "selected");
+    });
+
+    if (bestScore > 0) {
+        results.forEach(r => {
+            const el = document.getElementById(r.id);
+            if (r.score > 0) {
+                el.style.opacity = "1"; 
+                if (r.score === bestScore) {
+                    el.classList.add("best-match"); 
+                }
+            } else {
+                el.style.opacity = "0.35"; 
+            }
+        });
+        showDetails(results[0].id); 
     } else {
+        document.querySelectorAll(".room").forEach(r => r.style.opacity = "0.35");
         document.getElementById("details").innerHTML = "No matches found";
         currentSelectedId = null;
     }
