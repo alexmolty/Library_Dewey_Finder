@@ -174,96 +174,32 @@ function finishEdit() {
 
 // --- ПОИСК И ОБЩЕЕ УПРАВЛЕНИЕ ---
 function runSearch() {
-    let rawQ = document.getElementById("search").value.trim();
-    
-    // Если поле очистили и нажали Enter/Search - сбрасываем всё
-    if (!rawQ) {
-        resetUI();
-        return;
-    }
+    const q = document.getElementById("search").value.replace(/[^\d.\-]/g, '');
+    if (!q) return;
 
-    let q = rawQ;
-
-    // Поиск по словарю (если ввели буквы)
-    if (/[a-zA-Zא-ת]/.test(rawQ)) {
-        const lowerQ = rawQ.toLowerCase();
-        let found = false;
-        
-        for (let key in subjectDictionary) {
-            if (key.includes(lowerQ)) {
-                q = subjectDictionary[key];
-                document.getElementById("search").value = `${rawQ} → ${q}`;
-                found = true;
-                break;
-            }
-        }
-        
-        if (!found) {
-            document.querySelectorAll(".room").forEach(r => {
-                r.style.opacity = "0.35";
-                r.classList.remove("main", "secondary", "selected");
-            });
-            document.getElementById("details").innerHTML = `Subject "${rawQ}" not found.`;
-            currentSelectedId = null;
-            return;
-        }
-    } else {
-        // Очищаем цифры от скрытых символов
-        q = rawQ.replace(/[^\d.\-]/g, '');
-    }
+    document.querySelectorAll(".room").forEach(r => r.classList.remove("main", "secondary"));
 
     let results = locations.map(l => ({ ...l, score: matchDewey(l, q) }))
+        .filter(l => l.score > 0)
         .sort((a, b) => b.score - a.score);
 
-    const bestScore = results[0].score;
-
-    // Сначала очищаем все старые классы у всех комнат
-    document.querySelectorAll(".room").forEach(r => {
-        r.classList.remove("main", "secondary", "selected");
-    });
-
-    if (bestScore > 0) {
-        // Оставляем только те результаты, где score > 0
-        const validResults = results.filter(r => r.score > 0);
-        
-        validResults.forEach((r, index) => {
-            const el = document.getElementById(r.id);
-            el.style.opacity = "1"; // Делаем яркими те, что подошли
-            
-            // Первое место - синий цвет, остальные - желтый
-            if (index === 0) {
-                el.classList.add("main");
-            } else {
-                el.classList.add("secondary");
-            }
-        });
-
-        // Гасим те комнаты, в которых score === 0
-        results.filter(r => r.score === 0).forEach(r => {
-            document.getElementById(r.id).style.opacity = "0.35";
-        });
-        
-        showDetails(validResults[0].id); 
+    if (results.length) {
+        document.getElementById(results[0].id).classList.add("main");
+        showDetails(results[0].id);
+        results.slice(1).forEach(r => document.getElementById(r.id).classList.add("secondary"));
     } else {
-        document.querySelectorAll(".room").forEach(r => r.style.opacity = "0.35");
         document.getElementById("details").innerHTML = "No matches found";
         currentSelectedId = null;
     }
 }
 
-// --- ИСПРАВЛЕННАЯ ФУНКЦИЯ СБРОСА ---
 function resetUI() {
     document.getElementById("search").value = "";
-    document.querySelectorAll(".room").forEach(r => {
-        // Убираем все цвета выделения
-        r.classList.remove("main", "secondary", "selected");
-        // ПРИНУДИТЕЛЬНО ВОЗВРАЩАЕМ ЯРКОСТЬ
-        r.style.opacity = "1"; 
-    });
+    document.querySelectorAll(".room").forEach(r => r.classList.remove("main", "secondary", "selected"));
     document.getElementById("details").innerHTML = "Click a location to see all books... (Click items to edit)";
     currentSelectedId = null;
 }
-// --- EVENT LISTENERS ---
+
 document.getElementById("btn-add-location").addEventListener("click", () => {
     const name = prompt("Location name:");
     if (!name || !name.trim()) return;
@@ -278,6 +214,8 @@ document.getElementById("btn-add-location").addEventListener("click", () => {
     saveData(locations);
     render();
 });
+
+// --- EVENT LISTENERS ---
 document.getElementById("btn-search").addEventListener("click", runSearch);
 document.getElementById("btn-reset").addEventListener("click", resetUI);
 document.getElementById("search").addEventListener("keydown", (e) => {
@@ -294,7 +232,7 @@ async function initApp(forceRefresh = false) {
     
     const cachedData = localStorage.getItem("lib_cache");
     const cacheTime = localStorage.getItem("lib_cache_time");
-    const CACHE_DURATION = 2000 * 60 * 60; // 2 часа в миллисекундах
+    const CACHE_DURATION = 1000 * 60 * 60; // 1 час в миллисекундах
     const now = Date.now();
 
     // Если данные есть, они свежие (меньше часа) И мы не нажали кнопку принудительного обновления
